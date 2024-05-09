@@ -1,7 +1,6 @@
 #include <iostream>
 #include <ctime>
 #include <string>
-//#include <cassert>
 #include <SFML/Graphics.hpp>
 using namespace sf;
 using namespace std;
@@ -9,35 +8,17 @@ using namespace std;
 const int SIZE = 70;
 const int WIDTH = 10;
 const int HEIGHT = 20;
-int field[HEIGHT][WIDTH] =
-{ 0
-    /*{1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-    {1, 1, 1, 0, 0, 1, 1, 1, 1, 1},
-    {1, 1, 1, 0, 1, 1, 1, 1, 1, 1},*/
-};
-const int NUMSHAPES = 8;    // количество фигур
-const int NUMROTS = 4;      // количество состояний при повороте
+const int X_START = 3;      // start x
+const int Y_START = -1;     // start y
+const int NUMSHAPES = 8;    // number of figures
+const int NUMROTS = 4;      // number of turns
+const int FONT_SIZE = 80;
+
+int field[HEIGHT][WIDTH] = { 0 };
 
 const int coord[NUMSHAPES][NUMROTS][4][2] =
 {
-    // no shape
+    // no shape (white cell)
     {
         {
             {0, 0},
@@ -252,7 +233,7 @@ const int coord[NUMSHAPES][NUMROTS][4][2] =
             {2, 1},
             {2, 2}
         }
-    },
+    }
 };
 
 static const Color colors[NUMSHAPES] =
@@ -265,106 +246,102 @@ static const Color colors[NUMSHAPES] =
     Color(11, 194, 1),      // S
     Color(230, 17, 1),      // Z
     Color(255, 230, 6),     // O
-    //Color(255, 0, 0),
 };
 
 //-----------------------------------------------------------------------------------
 // variables
-int x_cur = 3,      // start x
-    y_cur = -1;     // start y
-int cur_rotation = 0;
-int cur_shape = 0;
-int next_shape = 0;
 
-//------------------------------------------------------------------------------
-// data types
-struct Block
-{
-    void drawAt(int x, int y, RenderWindow& w, int cur_rotation, int cur_shape)
-    {
-        //assert(cur_shape < NUMSHAPES);
-        //assert(colors[0] != Color::Black);
-        RectangleShape bl(Vector2f(SIZE - 1, SIZE - 1));
-        bl.setFillColor(colors[cur_shape]);
-        for (int i = 0; i < 4; i++)
-        {
-            bl.setPosition((x + coord[cur_shape][cur_rotation][i][0]) * SIZE, (y + coord[cur_shape][cur_rotation][i][1]) * SIZE);
-            w.draw(bl);
-        }
-    }
+int x_cur = X_START,
+    y_cur = Y_START,
+    cur_rotation = 0,
+    cur_shape = 0,
+    next_shape = 0;
 
-    int getMaxY()       // поиск max координаты по Y
-    {
-        int max = 0;
-        for (int i = 0; i < 4; i++)
-        {
-            if (coord[cur_shape][cur_rotation][i][1] > max)
-                max = coord[cur_shape][cur_rotation][i][1];
-        }
-        return max;
-    }
-
-    int getMaxX()       // поиск max координаты по X
-    {
-        int max = 0;
-        for (int i = 0; i < 4; i++)
-        {
-            if (coord[cur_shape][cur_rotation][i][0] > max)
-                max = coord[cur_shape][cur_rotation][i][0];
-        }
-        return max + 1;
-    }
-
-    int getMinX()       // поиск min координаты по X
-    {
-        int min = 1000;
-        for (int i = 0; i < 4; i++)
-        {
-            if (coord[cur_shape][cur_rotation][i][0] < min)
-                min = coord[cur_shape][cur_rotation][i][0];
-        }
-        return min;
-    }
-};
-
-
-//---------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------
 // functions
+
+int getRandomShape()
+{
+    int shape = 1 + rand() % 7;
+    return shape;
+}
+
+void drawBlock(RenderWindow& w, int x, int y, int cur_rotation, int cur_shape)
+{
+    RectangleShape bl(Vector2f(SIZE - 1, SIZE - 1));
+    bl.setFillColor(colors[cur_shape]);
+    for (int i = 0; i < 4; i++)
+    {
+        bl.setPosition((x + coord[cur_shape][cur_rotation][i][0]) * SIZE, (y + coord[cur_shape][cur_rotation][i][1]) * SIZE);
+        w.draw(bl);
+    }
+}
+
+int getMaxY(int cur_shape)       // поиск max координаты по Y
+{
+    int max = 0;
+    for (int i = 0; i < 4; i++)
+    {
+        if (coord[cur_shape][cur_rotation][i][1] > max)
+            max = coord[cur_shape][cur_rotation][i][1];
+    }
+    return max;
+}
+
+int getMaxX(int cur_shape)       // поиск max координаты по X
+{
+    int max = 0;
+    for (int i = 0; i < 4; i++)
+    {
+        if (coord[cur_shape][cur_rotation][i][0] > max)
+            max = coord[cur_shape][cur_rotation][i][0];
+    }
+    return max + 1;
+}
+
+int getMinX(int cur_shape)       // поиск min координаты по X
+{
+    int min = 1000;
+    for (int i = 0; i < 4; i++)
+    {
+        if (coord[cur_shape][cur_rotation][i][0] < min)
+            min = coord[cur_shape][cur_rotation][i][0];
+    }
+    return min;
+}
 
 void drawBoard(RenderWindow& w)
 {
     RectangleShape cell(Vector2f(SIZE - 1, SIZE - 1));
     w.clear(Color(80, 80, 80));
-    //assert(colors[0] != Color::Black);
-    //cout << "-----------------" << endl;
     for (int y = 0; y < HEIGHT; y++)
     {
         for (int x = 0; x < WIDTH; x++)
         {
             cell.setPosition(SIZE * x, SIZE * y);
             cell.setFillColor(colors[field[y][x]]);
-            //cout << field[y][x] << " ";
             w.draw(cell);
         }
-        //cout << endl;
     }
 }
 
-bool canMoveDown(int y_cur, Block& block)
+bool canMoveDown(int y_cur, int cur_shape)
 {
-    if (y_cur >= HEIGHT - 1 - block.getMaxY())
+    if (y_cur >= HEIGHT - 1 - getMaxY(cur_shape))
         return false;
     for (int i = 0; i < 4; i++)
     {
-        if (field[y_cur + 1 + coord[cur_shape][cur_rotation][i][1]][x_cur + coord[cur_shape][cur_rotation][i][0]] != 0)
+        int x = x_cur + coord[cur_shape][cur_rotation][i][0];
+        int y = y_cur + coord[cur_shape][cur_rotation][i][1];
+        if (field[y + 1][x] != 0)
             return false;
     }
     return true;
 }
 
-bool canMoveLeft(int x_cur, int y_cur, Block& block)
+bool canMoveLeft(int x_cur, int y_cur, int cur_shape)
 {
-    if (x_cur + block.getMinX() <= 0)
+    if (x_cur + getMinX(cur_shape) <= 0)
         return false;
     for (int i = 0; i < 4; i++)
     {
@@ -376,9 +353,9 @@ bool canMoveLeft(int x_cur, int y_cur, Block& block)
     return true;
 }
 
-bool canMoveRight(int x_cur, int y_cur, Block& block)
+bool canMoveRight(int x_cur, int y_cur, int cur_shape)
 {
-    if (x_cur + block.getMaxX() >= WIDTH)
+    if (x_cur + getMaxX(cur_shape) >= WIDTH)
         return false;
     for (int i = 0; i < 4; i++)
     {
@@ -390,29 +367,32 @@ bool canMoveRight(int x_cur, int y_cur, Block& block)
     return true;
 }
 
-bool canRotate(int x_cur, int y_cur, int cur_rot, Block& block)
+bool canRotate(int x_cur, int y_cur, int cur_shape, int cur_rot)
 {
     cur_rot = (cur_rot + 1) % NUMROTS;
     for (int i = 0; i < 4; i++)
     {
-        if (field[y_cur + coord[cur_shape][cur_rot][i][1]][x_cur + coord[cur_shape][cur_rot][i][0]] != 0 ||
-            x_cur + coord[cur_shape][cur_rot][i][0] < 0 || x_cur + coord[cur_shape][cur_rot][i][0] >= WIDTH)
+        int x = x_cur + coord[cur_shape][cur_rot][i][0];
+        int y = y_cur + coord[cur_shape][cur_rot][i][1];
+        if (field[y][x] != 0 || x < 0 || x >= WIDTH)
             return false;
     }
     return true;
 }
 
-bool canPlace(int x_cur, int y_cur, int cur_rot, Block& block)
+bool canPlace(int x_cur, int y_cur, int cur_shape, int cur_rot)
 {
     for (int i = 0; i < 4; i++)
     {
-        if (field[y_cur + coord[cur_shape][cur_rot][i][1]][x_cur + coord[cur_shape][cur_rot][i][0]] != 0)
+        int x = x_cur + coord[cur_shape][cur_rot][i][0];
+        int y = y_cur + coord[cur_shape][cur_rot][i][1];
+        if (field[y][x] != 0)
             return false;
     }
     return true;
 }
 
-bool fullLine(int y_cur)
+bool isFullLine(int y_cur)
 {
     for (int x = 0; x < WIDTH; x++)
     {
@@ -434,12 +414,6 @@ void clearLine(int y_cur)
         field[0][x] = 0;
 }
 
-int getRandomShape()
-{
-    int shape = 1 + rand() % 7;
-    return shape;
-}
-
 void drawNext(RenderWindow& w)
 {
     RectangleShape square((Vector2f(SIZE - 1, SIZE - 1)));
@@ -459,10 +433,10 @@ void printLevel(RenderWindow& w, int level)
     Font font;
     font.loadFromFile("BebasNeue-Regular.ttf");
 
-    Text text_level("Level:", font, 80);
+    Text text_level("Level:", font, FONT_SIZE);
     text_level.setPosition(12 * SIZE, 9 * SIZE);
 
-    Text level_number(to_string(level), font, 80);
+    Text level_number(to_string(level), font, FONT_SIZE);
     level_number.setPosition(15 * SIZE, 9 * SIZE);
 
     w.draw(text_level);
@@ -474,40 +448,40 @@ void printScore(RenderWindow& w, int score)
     Font font;
     font.loadFromFile("BebasNeue-Regular.ttf");
 
-    Text text_score("Score:", font, 80);
+    Text text_score("Score:", font, FONT_SIZE);
     text_score.setPosition(12 * SIZE, 11 * SIZE);
 
-    Text score_number(to_string(score), font, 80);
+    Text score_number(to_string(score), font, FONT_SIZE);
     score_number.setPosition(15 * SIZE, 11 * SIZE);
 
     w.draw(text_score);
     w.draw(score_number);
 }
 
-bool gameOver(int score, RenderWindow& window)
+bool gameOver(RenderWindow& window, int score)
 {
     bool restart = false;
-    RenderWindow w(VideoMode(800, 800), "Game Over!", Style::Default);
+    RenderWindow w(VideoMode(800, 600), "Game Over!", Style::Default);
     while (w.isOpen())
     {
         Font font;
         font.loadFromFile("BebasNeue-Regular.ttf");
 
-        Text text1("Game Over!", font, 80);       
+        Text text1("Game Over!", font, FONT_SIZE);
         text1.setFillColor(Color::Black);
-        text1.setPosition(200, 200);
+        text1.setPosition(100, 100);
 
-        Text text2("Your score:", font, 80);
+        Text text2("Your score:", font, FONT_SIZE);
         text2.setFillColor(Color::Black);
-        text2.setPosition(200, 300);
+        text2.setPosition(100, 200);
 
-        Text text3("Press R to restart", font, 80);
+        Text text3("Press R to restart\nClose the window to exit", font, FONT_SIZE);
         text3.setFillColor(Color::Black);
-        text3.setPosition(200, 400);
+        text3.setPosition(100, 300);
 
-        Text score_number(to_string(score), font, 80);
+        Text score_number(to_string(score), font, FONT_SIZE);
         score_number.setFillColor(Color::Black);
-        score_number.setPosition(550, 300);
+        score_number.setPosition(450, 200);
 
         w.clear(Color::White);
         Event ev;
@@ -516,7 +490,6 @@ bool gameOver(int score, RenderWindow& window)
             if (ev.type == Event::Closed)
             {
                 w.close();
-                //window.close();
             }
             if (Keyboard::isKeyPressed(Keyboard::R))
             {
@@ -533,15 +506,16 @@ bool gameOver(int score, RenderWindow& window)
     return !restart;
 }
 
+//-----------------------------------------------------------------------------------
+// main
 
 int main()
 {
     int dx = 0, score = 0, level = 1, deleted_lines = 0;
     bool rotate = false, pause = false, fast_fall = false;
-    float freq = 500 - level * 50;      // millisec
+    float speed = 500 - level * 50;      // millisec
 
-    RenderWindow window(VideoMode(1200, 1600), "Tetris", Style::Default);
-    Block cur_block;
+    RenderWindow window(VideoMode(1200, 1400), "Tetris", Style::Default);
 
     Clock clock;
     float timer = clock.getElapsedTime().asMilliseconds();
@@ -575,41 +549,36 @@ int main()
                 if (Keyboard::isKeyPressed(Keyboard::Space))
                     rotate = true;
                 if (Keyboard::isKeyPressed(Keyboard::Down))
-                    fast_fall = true;
+                    speed = 100;
             }
         }
-
-        drawBoard(window);
 
         // rotation ------------------------------------------------------------
         if (rotate)
         {
-            if (canRotate(x_cur, y_cur, cur_rotation, cur_block))
-            {
+            if (canRotate(x_cur, y_cur, cur_shape, cur_rotation))
                 cur_rotation = (cur_rotation + 1) % NUMROTS;
-            }
             rotate = false;
-        }
-        
-        if (fast_fall)
-            freq = 100;
+        }      
 
         // move down -------------------------------------------------------------
-        if ((cur_time - timer >= freq) && (!pause))
+        if ((cur_time - timer >= speed) && (!pause))
         {
             timer = cur_time;
-            if (canMoveDown(y_cur, cur_block))
+            if (canMoveDown(y_cur, cur_shape))
                 y_cur++;
             else
             {
                 for (int i = 0; i < 4; i++)
                 {
-                    field[y_cur + coord[cur_shape][cur_rotation][i][1]][x_cur + coord[cur_shape][cur_rotation][i][0]] = cur_shape;
+                    int x = x_cur + coord[cur_shape][cur_rotation][i][0];
+                    int y = y_cur + coord[cur_shape][cur_rotation][i][1];
+                    field[y][x] = cur_shape;
                 }
 
                 for (int i = y_cur + 3; i >= y_cur; i--)
                 {
-                    while (fullLine(i))
+                    while (isFullLine(i))
                     {
                         clearLine(i);
                         score += level;
@@ -623,19 +592,22 @@ int main()
                     deleted_lines = 0;
                 }
 
-                if (canPlace(3, -1, 0, cur_block))
+                if (canPlace(X_START, Y_START, cur_shape, 0))
                 {
-                    x_cur = 3;
-                    y_cur = -1;
-                    cur_rotation = 0;
+                    x_cur = X_START;
+                    y_cur = Y_START;
                     cur_shape = next_shape;
+                    cur_rotation = 0;                   
                     next_shape = getRandomShape();
-                    fast_fall = false;
-                    freq = 500 - level * 50;
+
+                    if (500 - level * 50 > 100)
+                        speed = 500 - level * 50;
+                    else
+                        speed = 100;
                 }
                 else    // game over
                 {
-                    if (gameOver(score, window))
+                    if (gameOver(window, score))
                     {
                         window.close();
                         break;                    
@@ -650,21 +622,22 @@ int main()
         // move <- -> ----------------------------------------------------------------
         if (dx != 0)
         {
-            if (dx == -1 && canMoveLeft(x_cur, y_cur, cur_block))
+            if (dx == -1 && canMoveLeft(x_cur, y_cur, cur_shape))
                 x_cur += dx;
-            if (dx == 1 && canMoveRight(x_cur, y_cur, cur_block))
+            if (dx == 1 && canMoveRight(x_cur, y_cur, cur_shape))
                 x_cur += dx;
             dx = 0;
         }
+
+        drawBoard(window);
 
         printLevel(window, level);
         printScore(window, score);
 
         drawNext(window);
-        cur_block.drawAt(12, 2, window, 0, next_shape);
+        drawBlock(window, 12, 2, 0, next_shape);
 
-        cur_block.drawAt(x_cur, y_cur, window, cur_rotation, cur_shape);
-        //assert(colors[0] != Color::Black);
+        drawBlock(window, x_cur, y_cur, cur_rotation, cur_shape);
         window.display();
     }
     return 0;

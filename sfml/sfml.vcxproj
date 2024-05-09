@@ -24,6 +24,7 @@
     <ProjectGuid>{e6cfd17e-2ed1-4446-a5aa-c002e239a0d7}</ProjectGuid>
     <RootNamespace>sfml</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>Tetris</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
