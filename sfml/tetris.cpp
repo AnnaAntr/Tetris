@@ -277,7 +277,7 @@ void drawBlock(RenderWindow& w, int x, int y, int cur_rotation, int cur_shape)
     }
 }
 
-int getMaxY(int cur_shape)       // поиск max координаты по Y
+int getMaxY(int cur_shape)       // finds max Y coordinate
 {
     int max = 0;
     for (int i = 0; i < 4; i++)
@@ -288,7 +288,7 @@ int getMaxY(int cur_shape)       // поиск max координаты по Y
     return max;
 }
 
-int getMaxX(int cur_shape)       // поиск max координаты по X
+int getMaxX(int cur_shape)       // finds max X coordinate
 {
     int max = 0;
     for (int i = 0; i < 4; i++)
@@ -299,7 +299,7 @@ int getMaxX(int cur_shape)       // поиск max координаты по X
     return max + 1;
 }
 
-int getMinX(int cur_shape)       // поиск min координаты по X
+int getMinX(int cur_shape)       // finds min X coordinate
 {
     int min = 1000;
     for (int i = 0; i < 4; i++)
